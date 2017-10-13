@@ -52,7 +52,7 @@ class LinkGenerator
      * @param UrlGenerator $urls
      * @param IlluminateUrlGenerator $generator
      */
-    public function __construct(SchemaFactoryInterface $factory, UrlGenerator $urls, IlluminateUrlGenerator $generator)
+    public function __construct(SchemaFactoryInterface $factory, UrlGenerator $urls, $generator)
     {
         $this->factory = $factory;
         $this->urls = $urls;

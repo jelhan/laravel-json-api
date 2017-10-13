@@ -20,7 +20,7 @@ namespace CloudCreativity\LaravelJsonApi\Testing;
 
 use CloudCreativity\LaravelJsonApi\Api\Api;
 use Illuminate\Contracts\Routing\UrlRoutable;
-use Illuminate\Foundation\Testing\Concerns\MakesHttpRequests;
+use Laravel\Lumen\Testing\Concerns\MakesHttpRequests;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Neomerx\JsonApi\Contracts\Document\DocumentInterface as Keys;

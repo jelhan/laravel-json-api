@@ -39,12 +39,14 @@ use CloudCreativity\LaravelJsonApi\Http\Requests\RequestInterpreter;
 use CloudCreativity\LaravelJsonApi\Http\Responses\Responses;
 use CloudCreativity\LaravelJsonApi\Routing\ResourceRegistrar;
 use CloudCreativity\LaravelJsonApi\Services\JsonApiService;
+use CloudCreativity\LaravelJsonApi\Utils\Environment;
 use CloudCreativity\LaravelJsonApi\View\Renderer;
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Routing\Router;
+use Illuminate\Routing\Router as LaravelRouter;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
+use Laravel\Lumen\Application as LumenApplication;
 use Neomerx\JsonApi\Contracts\Document\DocumentFactoryInterface;
 use Neomerx\JsonApi\Contracts\Encoder\Handlers\HandlerFactoryInterface;
 use Neomerx\JsonApi\Contracts\Encoder\Parser\ParserFactoryInterface;
@@ -77,9 +79,9 @@ class ServiceProvider extends BaseServiceProvider
     /**
      * @param Router $router
      */
-    public function boot(Router $router)
+    public function boot()
     {
-        $this->bootMiddleware($router);
+        $this->bootMiddleware();
         $this->bootResponseMacro();
         $this->bootBladeDirectives();
     }
@@ -108,12 +110,23 @@ class ServiceProvider extends BaseServiceProvider
      *
      * @param Router $router
      */
-    protected function bootMiddleware(Router $router)
+    protected function bootMiddleware()
     {
-        $router->aliasMiddleware('json-api', BootJsonApi::class);
-        $router->aliasMiddleware('json-api.authorize', AuthorizeRequest::class);
-        $router->aliasMiddleware('json-api.validate', ValidateRequest::class);
-        $router->aliasMiddleware('json-api.bindings', SubstituteBindings::class);
+        $middlewares = [
+            'json-api' => BootJsonApi::class,
+            'json-api.authorize' => AuthorizeRequest::class,
+            'json-api.validate' => ValidateRequest::class,
+            // 'json-api.bindings' => SubstituteBindings::class,
+        ];
+        if (Environment::isLumen()) {
+            $router = $this->app->make(LumenApplication::class);
+            $router->routeMiddleware($middlewares);
+        } else {
+            $router = $this->app->make(LaravelRouter::class);
+            foreach ($middlewares as $alias => $class) {
+                $router->aliasMiddleware($alias, $class);
+            }
+        }
     }
 
     /**
@@ -123,9 +136,11 @@ class ServiceProvider extends BaseServiceProvider
      */
     protected function bootResponseMacro()
     {
-        Response::macro('jsonApi', function ($api = null) {
-            return Responses::create($api);
-        });
+        if (Environment::isLaravel()) {
+            Response::macro('jsonApi', function ($api = null) {
+                return Responses::create($api);
+            });
+        }
     }
 
     /**
@@ -134,9 +149,11 @@ class ServiceProvider extends BaseServiceProvider
     protected function bootBladeDirectives()
     {
         /** @var BladeCompiler $compiler */
-        $compiler = $this->app->make(BladeCompiler::class);
-        $compiler->directive('jsonapi', Renderer::class . '::compileWith');
-        $compiler->directive('encode', Renderer::class . '::compileEncode');
+        if (Environment::isLaravel()) {
+            $compiler = $this->app->make(BladeCompiler::class);
+            $compiler->directive('jsonapi', Renderer::class . '::compileWith');
+            $compiler->directive('encode', Renderer::class . '::compileEncode');
+        }
     }
 
     /**
@@ -157,7 +174,7 @@ class ServiceProvider extends BaseServiceProvider
      */
     protected function bindNeomerx()
     {
-        $this->app->singleton(Factory::class, function (Application $app) {
+        $this->app->singleton(Factory::class, function ($app) {
             $factory = new Factory($app);
             $factory->setLogger($app->make(LoggerInterface::class));
             return $factory;
@@ -298,5 +315,4 @@ class ServiceProvider extends BaseServiceProvider
     {
         return (array) config('json-api-errors');
     }
-
 }

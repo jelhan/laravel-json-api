@@ -22,7 +22,9 @@ use Closure;
 use CloudCreativity\LaravelJsonApi\Api\Api;
 use CloudCreativity\LaravelJsonApi\Api\Repository;
 use CloudCreativity\LaravelJsonApi\Api\ResourceProviders;
+use CloudCreativity\LaravelJsonApi\Utils\Environment;
 use Illuminate\Contracts\Routing\Registrar;
+use Illuminate\Contracts\Foundation\Application;
 
 /**
  * Class ResourceRegistrar
@@ -50,11 +52,15 @@ class ResourceRegistrar
     /**
      * ResourceRegistrar constructor.
      *
-     * @param Registrar $router
      * @param Repository $apiRepository
      */
-    public function __construct(Registrar $router, Repository $apiRepository)
+    public function __construct(Repository $apiRepository)
     {
+        if (Environment::isLumen()) {
+            $router = app(\Laravel\Lumen\Routing\Router::class);
+        } else {
+            $router = resolve(Registrar::class);
+        }
         $this->router = $router;
         $this->apiRepository = $apiRepository;
     }

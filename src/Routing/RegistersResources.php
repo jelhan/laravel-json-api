@@ -19,7 +19,9 @@
 namespace CloudCreativity\LaravelJsonApi\Routing;
 
 use ArrayAccess;
+use CloudCreativity\LaravelJsonApi\Utils\Environment;
 use CloudCreativity\JsonApi\Utils\Str;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Routing\Registrar;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Fluent;
@@ -129,17 +131,32 @@ trait RegistersResources
      * @param $action
      * @return Route
      */
-    protected function createRoute(Registrar $router, $method, $uri, $action)
+    protected function createRoute($router, $method, $uri, $action)
     {
-        /** @var Route $route */
-        $route = $router->{$method}($uri, $action);
-        $route->defaults(ResourceRegistrar::PARAM_RESOURCE_TYPE, $this->resourceType);
+        if (Environment::isLumen()) {
+            if ($idConstraint = $this->idConstraint($uri)) {
+                // ToDo: support id constraint
+                // https://github.com/nikic/FastRoute#defining-routes
+            }
 
-        if ($idConstraint = $this->idConstraint($uri)) {
-            $route->where(ResourceRegistrar::PARAM_RESOURCE_ID, $idConstraint);
+            // Lumen Router does not support setting (default) parameters for route
+            // just a quick and dirty work-a-round
+            $action[ResourceRegistrar::PARAM_RESOURCE_TYPE] = $this->resourceType;
         }
 
-        return $route;
+        /** @var Route $route */
+        // Lumen: returns Laravel\Lumen\Routing\Router
+        $route = $router->{$method}($uri, $action);
+
+        if (Environment::isLaraveL()){
+            $route->defaults(ResourceRegistrar::PARAM_RESOURCE_TYPE, $this->resourceType);
+
+            if ($idConstraint = $this->idConstraint($uri)) {
+                $route->where(ResourceRegistrar::PARAM_RESOURCE_ID, $idConstraint);
+            }
+
+            return $route;
+        }
     }
 
     /**

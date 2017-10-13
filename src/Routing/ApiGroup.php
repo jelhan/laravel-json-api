@@ -53,7 +53,7 @@ class ApiGroup
      * @param Api $api
      * @param array $options
      */
-    public function __construct(Registrar $router, Api $api, array $options)
+    public function __construct($router, Api $api, array $options)
     {
         $this->router = $router;
         $this->api = $api;

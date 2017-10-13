@@ -29,11 +29,13 @@ use CloudCreativity\LaravelJsonApi\Api\UrlGenerator;
 use CloudCreativity\LaravelJsonApi\Http\Responses\Responses;
 use CloudCreativity\LaravelJsonApi\Schema\Container as SchemaContainer;
 use CloudCreativity\LaravelJsonApi\Store\Container as AdapterContainer;
+use CloudCreativity\LaravelJsonApi\Utils\Environment;
 use CloudCreativity\LaravelJsonApi\Validators\ValidatorErrorFactory;
 use CloudCreativity\LaravelJsonApi\Validators\ValidatorFactory;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Routing\UrlGenerator as IlluminateUrlGenerator;
 use Illuminate\Contracts\Validation\Factory as ValidatorFactoryContract;
+use Laravel\Lumen\Routing\UrlGenerator as LumenUrlGenerator;
 use Neomerx\JsonApi\Contracts\Codec\CodecMatcherInterface;
 use Neomerx\JsonApi\Contracts\Encoder\Parameters\EncodingParametersInterface;
 use Neomerx\JsonApi\Contracts\Http\Headers\SupportedExtensionsInterface;
@@ -137,7 +139,11 @@ class Factory extends BaseFactory
      */
     public function createUrlGenerator(Url $url)
     {
-        $generator = $this->container->make(IlluminateUrlGenerator::class);
+        if (Environment::isLaravel()) {
+            $generator = $this->container->make(IlluminateUrlGenerator::class);
+        } else {
+            $generator = $this->container->make(LumenUrlGenerator::class);
+        }
 
         return new UrlGenerator($generator, $url);
     }
@@ -148,7 +154,11 @@ class Factory extends BaseFactory
      */
     public function createLinkGenerator(UrlGenerator $urls)
     {
-        $generator = $this->container->make(IlluminateUrlGenerator::class);
+        if (Environment::isLaravel()) {
+            $generator = $this->container->make(IlluminateUrlGenerator::class);
+        } else {
+            $generator = $this->container->make(LumenUrlGenerator::class);
+        }
 
         return new LinkGenerator($this, $urls, $generator);
     }

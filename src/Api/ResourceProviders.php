@@ -71,7 +71,7 @@ class ResourceProviders implements IteratorAggregate
      * @param Registrar $router
      * @return void
      */
-    public function mountAll(ApiGroup $api, Registrar $router)
+    public function mountAll(ApiGroup $api, $router)
     {
         /** @var ResourceProvider $provider */
         foreach ($this as $provider) {

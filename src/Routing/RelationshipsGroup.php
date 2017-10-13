@@ -19,6 +19,7 @@
 namespace CloudCreativity\LaravelJsonApi\Routing;
 
 use Generator;
+use CloudCreativity\LaravelJsonApi\Utils\Environment;
 use Illuminate\Contracts\Routing\Registrar;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Fluent;
@@ -48,7 +49,7 @@ class RelationshipsGroup
     /**
      * @param Registrar $router
      */
-    public function addRelationships(Registrar $router)
+    public function addRelationships($router)
     {
         foreach ($this->relationships() as $relationship => $options) {
             foreach ($options['actions'] as $action) {
@@ -63,7 +64,7 @@ class RelationshipsGroup
      * @param $action
      * @return Route
      */
-    protected function relationshipRoute(Registrar $router, $relationship, $action)
+    protected function relationshipRoute($router, $relationship, $action)
     {
         $route = $this->createRoute(
             $router,
@@ -72,9 +73,12 @@ class RelationshipsGroup
             $this->routeAction($relationship, $action)
         );
 
-        $route->defaults(ResourceRegistrar::PARAM_RELATIONSHIP_NAME, $relationship);
+        if (Environment::isLaravel()) {
+            // ToDo: Set relationship in Lumen
+            $route->defaults(ResourceRegistrar::PARAM_RELATIONSHIP_NAME, $relationship);
 
-        return $route;
+            return $route;
+        }
     }
 
     /**

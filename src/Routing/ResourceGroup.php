@@ -20,6 +20,7 @@ namespace CloudCreativity\LaravelJsonApi\Routing;
 
 use CloudCreativity\JsonApi\Utils\Str;
 use CloudCreativity\LaravelJsonApi\Api\ApiResource;
+use CloudCreativity\LaravelJsonApi\Utils\Environment;
 use Illuminate\Contracts\Routing\Registrar;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Fluent;
@@ -56,7 +57,7 @@ class ResourceGroup
     /**
      * @param Registrar $router
      */
-    public function addResource(Registrar $router)
+    public function addResource($router)
     {
         $router->group($this->groupAction(), function ($router) {
             $this->addResourceRoutes($router);
@@ -69,11 +70,17 @@ class ResourceGroup
      */
     protected function groupAction()
     {
-        return [
+        $action = [
             'middleware' => $this->middleware(),
-            'as' => "{$this->resourceType}.",
+            'as' => "{$this->resourceType}",
             'prefix' => Str::dasherize($this->resourceType),
         ];
+
+        if (Environment::isLaravel()) {
+            $action['as'] .= ".";
+        }
+
+        return $action;
     }
 
     /**
@@ -88,7 +95,7 @@ class ResourceGroup
         return array_merge($middleware, array_filter([
             $authorizer ? "json-api.authorize:$authorizer" : null,
             $validators ? "json-api.validate:$validators" : null,
-            'json-api.bindings',
+            // 'json-api.bindings',
         ]));
     }
 
@@ -119,7 +126,7 @@ class ResourceGroup
     /**
      * @param Registrar $router
      */
-    protected function addResourceRoutes(Registrar $router)
+    protected function addResourceRoutes($router)
     {
         foreach ($this->resourceActions() as $action) {
             $this->resourceRoute($router, $action);
@@ -137,7 +144,7 @@ class ResourceGroup
     /**
      * @param Registrar $router
      */
-    protected function addRelationshipRoutes(Registrar $router)
+    protected function addRelationshipRoutes($router)
     {
         $this->relationshipsGroup()->addRelationships($router);
     }
@@ -155,7 +162,7 @@ class ResourceGroup
      * @param $action
      * @return Route
      */
-    protected function resourceRoute(Registrar $router, $action)
+    protected function resourceRoute($router, $action)
     {
         return $this->createRoute(
             $router,

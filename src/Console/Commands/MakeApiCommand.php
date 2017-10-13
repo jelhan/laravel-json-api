@@ -55,7 +55,7 @@ class MakeApiCommand extends Command
 
         $filename = sprintf('json-api-%s.php', Str::dasherize($name));
 
-        if ($files->exists($path = config_path($filename))) {
+        if ($files->exists($path = $this->getConfigPath($filename))) {
             $this->error("JSON API '$name' already exists.");
             return 1;
         }
@@ -66,5 +66,17 @@ class MakeApiCommand extends Command
         $this->info("Created config file for API '$name': $filename");
 
         return 0;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getConfigPath()
+    {
+        if (function_exists('config_path')) {
+            return config_path($filename);
+        }
+
+        return app()->basePath() . '/config/' . $filename;
     }
 }

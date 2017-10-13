@@ -28,7 +28,7 @@ use CloudCreativity\LaravelJsonApi\Utils\Str;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Response;
-use Illuminate\Routing\Controller;
+use Laravel\Lumen\Routing\Controller;
 
 /**
  * Class EloquentController

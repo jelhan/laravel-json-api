@@ -21,6 +21,7 @@ namespace CloudCreativity\LaravelJsonApi\Http\Requests;
 use CloudCreativity\JsonApi\Exceptions\RuntimeException;
 use CloudCreativity\JsonApi\Http\Requests\AbstractRequestInterpreter;
 use CloudCreativity\LaravelJsonApi\Routing\ResourceRegistrar;
+use CloudCreativity\LaravelJsonApi\Utils\Environment;
 use Illuminate\Http\Request;
 
 /**
@@ -59,7 +60,12 @@ class RequestInterpreter extends AbstractRequestInterpreter
      */
     public function getResourceType()
     {
-        $name = $this->request->route(ResourceRegistrar::PARAM_RESOURCE_TYPE);
+        if (Environment::isLumen()) {
+            // https://github.com/laravel/lumen-framework/issues/119
+            $name = $this->request->route()[1][ResourceRegistrar::PARAM_RESOURCE_TYPE] ?? null;
+        } else {
+            $name = $this->request->route(ResourceRegistrar::PARAM_RESOURCE_TYPE);
+        }
 
         if (empty($name)) {
             throw new RuntimeException('No matching resource type from the current route name.');
@@ -73,6 +79,11 @@ class RequestInterpreter extends AbstractRequestInterpreter
      */
     public function getResourceId()
     {
+        if (Environment::isLumen()) {
+            // https://github.com/laravel/lumen-framework/issues/119
+            return $this->request->route()[2][ResourceRegistrar::PARAM_RESOURCE_ID] ?? null;
+        }
+
         return $this->request->route(ResourceRegistrar::PARAM_RESOURCE_ID);
     }
 
@@ -81,6 +92,10 @@ class RequestInterpreter extends AbstractRequestInterpreter
      */
     public function getRelationshipName()
     {
+        if (Environment::isLumen()) {
+            // ToDo
+            return null;
+        }
         return $this->request->route(ResourceRegistrar::PARAM_RELATIONSHIP_NAME);
     }
 

@@ -20,6 +20,7 @@ namespace CloudCreativity\LaravelJsonApi\Api;
 
 use CloudCreativity\LaravelJsonApi\Routing\ResourceRegistrar;
 use CloudCreativity\LaravelJsonApi\Routing\RouteName;
+use CloudCreativity\LaravelJsonApi\Utils\Environment;
 use Illuminate\Contracts\Routing\UrlGenerator as IlluminateUrlGenerator;
 
 /**
@@ -46,7 +47,7 @@ class UrlGenerator
      * @param IlluminateUrlGenerator $generator
      * @param Url $url
      */
-    public function __construct(IlluminateUrlGenerator $generator, Url $url)
+    public function __construct($generator, Url $url)
     {
         $this->generator = $generator;
         $this->url = $url;
@@ -200,7 +201,12 @@ class UrlGenerator
      */
     private function route($name, $parameters = [])
     {
-        $name = $this->url->getName() . $name;
+        $urlName = $this->url->getName();
+        if (Environment::isLumen()) {
+            $name = $urlName . '.' . $name;
+        } else {
+            $name = $urlName . $name;
+        }
 
         return $this->generator->route($name, $parameters, true);
     }

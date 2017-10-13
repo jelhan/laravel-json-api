@@ -55,7 +55,7 @@ trait CreatesResponses
      */
     protected function reply()
     {
-        return response()->jsonApi($this->apiName());
+        return Responses::create($this->apiName());
     }
 
     /**
