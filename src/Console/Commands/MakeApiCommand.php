@@ -71,7 +71,7 @@ class MakeApiCommand extends Command
     /**
      * @return string
      */
-    protected function getConfigPath()
+    protected function getConfigPath($filename)
     {
         if (function_exists('config_path')) {
             return config_path($filename);
